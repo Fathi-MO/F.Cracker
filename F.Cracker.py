@@ -200,5 +200,5 @@ def main():
     print(f"{CYAN}    Active cracking time: {timedelta(seconds=int(crack_time))}{RESET}")
     print(f"{YELLOW}    Use 'hashcat -m {mode} --show {hash_value}' to view results{RESET}")
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     main()
