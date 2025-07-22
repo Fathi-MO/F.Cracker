@@ -64,32 +64,7 @@ Hash Crack Tool
 
     ✅ Looks clean, helps you track progress like a pro
 
-
- 
-    ✅ 7. Temporary File Handling
-
-    Automatically saves hashes into a temp file if you input raw hash text.
-
-    ✅ Makes hashcat commands compatible without manually creating files.
-
-
- 
-    ✅ 8. Clear Success/Failure Handling
-
-    Detects if cracking was successful (returncode == 0)
-
-    Automatically suggests running:
-
-    hashcat -m <mode> --show <file>
-
-    ✅ Tells you exactly what to do next.
-
-
-
-
- 
-
-    🔹 Efficient Memory Management with Smart Wordlist Chunking
+✅ 7.Efficient Memory Management with Smart Wordlist Chunking
 
 Unlike regular Hashcat usage, where applying multiple rules on large wordlists can quickly exceed RAM and disk capacity (causing crashes or severe slowdowns), F.Cracker implements an intelligent chunking mechanism:
 
