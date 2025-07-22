@@ -18,7 +18,7 @@ RESET = "\033[0m"
 def print_banner():
     banner = pyfiglet.figlet_format("F.Cracker", font="slant")
     print(f"{GREEN}{banner}{RESET}")
-    print(f"{CYAN}made by Fathi Eltantawy{RESET}")
+    print(f"{CYAN}Made By Fathi Eltantawy{RESET}")
     print(f"{GRAY}{'='*50}{RESET}")
 
 def extract_modes_from_hashcat(search_term):
@@ -168,7 +168,7 @@ def main():
     print_banner()
     start_time = time.time()
     
-    hash_input = input(f"{CYAN}[?] Enter hash or path to file: {RESET}").strip()
+    hash_input = input(f"{CYAN}[?] Enter Path To File: {RESET}").strip()
     if os.path.isfile(hash_input):
         hash_value = hash_input
     else:
