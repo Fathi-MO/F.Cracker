@@ -80,5 +80,8 @@ Unlike regular Hashcat usage, where applying multiple rules on large wordlists c
 
 
 ############################################################################
+
+
+
 check  Python Models ==>os  subprocess  webbrowser  timetempfile  datetime  pyfiglet
 and Netcat ==> /usr/shere/netcat
