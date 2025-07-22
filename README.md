@@ -1,4 +1,5 @@
 # F.Cracker
+
 Hash Crack Tool
 ✅ 1. Interactive Hash Mode Identification
 
@@ -75,3 +76,9 @@ Unlike regular Hashcat usage, where applying multiple rules on large wordlists c
     This allows massive wordlists and multiple rule combinations to be used efficiently—even on systems with limited RAM or storage.
 
     ✅ This design unleashes the full power of Hashcat without being constrained by hardware limits, making F.Cracker highly scalable and stable for large-scale cracking jobs.
+
+
+
+############################################################################
+check  Python Models ==>os  subprocess  webbrowser  timetempfile  datetime  pyfiglet
+and Netcat ==> /usr/shere/netcat
