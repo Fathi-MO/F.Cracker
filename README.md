@@ -8,11 +8,16 @@ Hash Crack Tool
 
     ✅ Saves time and reduces error in mode selection.
 
+	
+
 ✅ 2. Auto-opening Web Hash Identifier
 
     If you don't know the hash type, the script opens the hashes.com hash identifier for you.
 
     ✅ Helps beginners or even experienced users who forget some hash formats.
+
+
+ 
 
 ✅ 3. Handles Long Wordlists Automatically
 
@@ -22,6 +27,9 @@ Hash Crack Tool
 
     ✅ Automatically adapts to GPU limits, reducing crashes and wasted time.
 
+
+ 
+
 ✅ 4. Session Tracking with Chunks + Rules
 
     Applies hashcat sessions (--session) for each chunk and rule, enabling better tracking and even resuming.
@@ -30,11 +38,15 @@ Hash Crack Tool
 
     ✅ Professional-grade wordlist management.
 
+
+
 ✅ 5. Rule Selection Interface
 
     Lists all .rule files from /usr/share/hashcat/rules and lets you select multiple by number.
 
     ✅ No need to remember rule filenames, and avoids typos.
+
+	
 
 ✅ 6. Color-coded Output and Progress Tracking
 
@@ -51,11 +63,17 @@ Hash Crack Tool
         Cracking runtime
 
     ✅ Looks clean, helps you track progress like a pro
+
+
+ 
     ✅ 7. Temporary File Handling
 
     Automatically saves hashes into a temp file if you input raw hash text.
 
     ✅ Makes hashcat commands compatible without manually creating files.
+
+
+ 
     ✅ 8. Clear Success/Failure Handling
 
     Detects if cracking was successful (returncode == 0)
@@ -65,6 +83,11 @@ Hash Crack Tool
     hashcat -m <mode> --show <file>
 
     ✅ Tells you exactly what to do next.
+
+
+
+
+ 
 
     🔹 Efficient Memory Management with Smart Wordlist Chunking
 
