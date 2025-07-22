@@ -6,6 +6,7 @@ from tempfile import mkdtemp
 from datetime import timedelta
 import pyfiglet
 
+# ANSI Colors
 GREEN = "\033[92m"
 RED = "\033[91m"
 YELLOW = "\033[93m"
@@ -22,12 +23,11 @@ def print_banner():
 
 def extract_modes_from_hashcat(search_term):
     try:
-        output = subprocess.check_output("hashcat -h | grep '|' | head -n 50", shell=True, text=True)
+        output = subprocess.check_output("hashcat -h", shell=True, text=True)
         print(f"\n{BLUE}[+] Top matching modes in hashcat:{RESET}")
         matched = []
         for line in output.splitlines():
             if search_term.lower() in line.lower():
-                print(f"{CYAN}   {line.strip()}{RESET}")
                 parts = line.strip().split("|")
                 if parts and parts[0].strip().isdigit():
                     mode = parts[0].strip()
@@ -35,6 +35,8 @@ def extract_modes_from_hashcat(search_term):
         if not matched:
             print(f"{YELLOW}[-] No match found.{RESET}")
             return input(f"{YELLOW}[?] Enter mode manually: {RESET}").strip()
+        for i, (mode, line) in enumerate(matched[:5], 1):
+            print(f"{CYAN}   {line.strip()}{RESET}")
         return input(f"\n{GREEN}[?] Enter the MODE number from above: {RESET}").strip()
     except Exception as e:
         print(f"{RED}[-] Error getting modes: {e}{RESET}")
@@ -85,55 +87,82 @@ def try_crack(mode, hash_value, wordlist, rules):
 
     try:
         print(f"\n{CYAN}[*] Trying with full wordlist: {wordlist}{RESET}")
-        result = subprocess.run(cmd, text=True, capture_output=True)
+        result = subprocess.run(
+            cmd,
+            text=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
 
-        if "Not enough allocatable device memory" in result.stderr:
-            return "MEMORY"
+        if result.returncode == 139:
+            return "FAIL"
         if result.returncode == 0:
-            return "SUCCESS"
+            # Check if cracked
+            show_cmd = [
+                "hashcat", "-m", mode, "--show", hash_value
+            ]
+            show_result = subprocess.run(
+                show_cmd, text=True, capture_output=True
+            )
+            output = show_result.stdout.strip()
+            if output:
+                print(f"{GREEN}[✓] Hash cracked! Result:{RESET}\n{CYAN}{output}{RESET}")
+                return "SUCCESS"
+            else:
+                print(f"{YELLOW}[*] Hashcat finished but no result found.{RESET}")
+                return "FAIL"
         return "FAIL"
     
     except subprocess.CalledProcessError as e:
-        if "Not enough allocatable device memory" in e.stderr or "clCreateBuffer" in e.stderr:
-            return "MEMORY"
         print(f"{RED}[-] Cracking failed: {e}{RESET}")
         return "FAIL"
 
 def crack_chunks(mode, hash_value, chunks, rules):
     start_time = time.time()
     total_chunks = len(chunks)
-    
+    cracked = False
+
     for i, chunk in enumerate(chunks):
         chunk_start = time.time()
-        print(f"\n{YELLOW}[+] Processing chunk {i+1}/{total_chunks}: {os.path.basename(chunk)}{RESET}")
+        print(f"{YELLOW}[+] Processing chunk {i+1}/{total_chunks}: {os.path.basename(chunk)}{RESET}")
         
         for rule in rules:
-            print(f"  {CYAN}[-] Applying rule: {rule}{RESET}")
             rule_start = time.time()
-            
             cmd = [
                 "hashcat", "-a", "0", "-m", mode, hash_value, chunk,   
                 "-r", f"/usr/share/hashcat/rules/{rule}",
                 "--force", "--session", f"session_{i}_{rule}",
                 "--segment-size=1", "--logfile-disable"
             ]
-            
             try:
-                subprocess.run(cmd, check=True)
-                rule_time = time.time() - rule_start
-                print(f"  {GREEN}[✓] Rule completed in {timedelta(seconds=int(rule_time))}{RESET}")
-            except subprocess.CalledProcessError as e:
-                print(f"  {RED}[!] Failed with rule {rule}: {e}{RESET}")
-        
-        chunk_time = time.time() - chunk_start
-        completed = i + 1
-        remaining = total_chunks - completed
-        avg_time_per_chunk = (time.time() - start_time) / completed if completed > 0 else 0
-        eta = avg_time_per_chunk * remaining
+                subprocess.run(
+                    cmd,
+                    check=True,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+                )
+                # Check if cracked after each run
+                show_cmd = [
+                    "hashcat", "-m", mode, "--show", hash_value
+                ]
+                show_result = subprocess.run(
+                    show_cmd, text=True, capture_output=True
+                )
+                output = show_result.stdout.strip()
+                if output:
+                    print(f"{GREEN}[✓] Hash cracked! Result:{RESET}\n{CYAN}{output}{RESET}")
+                    cracked = True
+                    break
+            except subprocess.CalledProcessError:
+                pass
+        print(f"{BLUE}[•] Progress: {i+1}/{total_chunks} chunks{RESET}")
+        if cracked:
+            break
 
-        print(f"  {BLUE}[•] Chunk completed in {timedelta(seconds=int(chunk_time))}{RESET}")
-        print(f"  {BLUE}[•] Progress: {completed}/{total_chunks} chunks{RESET}")
-        print(f"  {YELLOW}[•] Estimated time remaining: {timedelta(seconds=int(eta))}{RESET}")
+    if cracked:
+        print(f"{GREEN}[✓] Cracking finished: SUCCESS{RESET}")
+    else:
+        print(f"{YELLOW}[-] Cracking finished: FAILED{RESET}")
 
 def main():
     print_banner()
@@ -182,13 +211,21 @@ def main():
 
     print(f"\n{CYAN}[+] Starting cracking process...{RESET}")
     crack_start = time.time()
-    result = try_crack(mode, hash_value, wordlist, rules)
 
-    if result == "MEMORY":
-        print(f"{RED}[-] Memory error detected. Switching to chunked processing...{RESET}")
+    # Force split and chunked processing if more than one rule is selected
+    if len(rules) > 1:
+        print(f"{YELLOW}[!] More than one rule selected, forcing chunked processing!{RESET}")
         chunks = split_wordlist(wordlist)
         crack_chunks(mode, hash_value, chunks, rules)
-    elif result == "SUCCESS":
+        result = None  # No need to run try_crack
+    else:
+        result = try_crack(mode, hash_value, wordlist, rules)
+        if result == "MEMORY":
+            print(f"{RED}[-] Memory error detected. Switching to chunked processing...{RESET}")
+            chunks = split_wordlist(wordlist)
+            crack_chunks(mode, hash_value, chunks, rules)
+
+    if result == "SUCCESS":
         print(f"{GREEN}[✓] Successfully cracked hash!{RESET}")
     else:
         print(f"{YELLOW}[-] Cracking attempt failed{RESET}")
